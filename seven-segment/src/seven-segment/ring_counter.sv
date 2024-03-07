@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module ring_counter #(
     parameter NUM_BITS = 4,
     parameter INIT_PATTERN = 4'b1110
