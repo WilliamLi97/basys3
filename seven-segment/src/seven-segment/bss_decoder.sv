@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module bss_decoder (
     input logic [3:0] bin_i,
     output logic [6:0] cathode_bits_o

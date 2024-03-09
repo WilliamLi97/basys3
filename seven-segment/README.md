@@ -53,6 +53,8 @@ index[1] = anode_bits_o[1] & anode_bits_o[0];
 index[0] = anode_bits_o[2] & anode_bits_o[0];
 ```
 
+Due to a limitation of Icarus Verilog, a case statement was used to translate the 4-bit ring counter value to binary. This results in two LUT4s instead of two LUT2s.
+
 The conversion from binary to the corresponding cathode bits of the hexadecimal symbol can be represented as a decoder / series of LUTs.
 
 ## Ring Counter (ring_counter)

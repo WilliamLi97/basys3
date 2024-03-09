@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module ss_controller(
     input logic reset_i,
     input logic clk_i,
@@ -30,6 +28,12 @@ bss_decoder bss_decoder_inst (
 );
 
 always_comb begin
-    anode_index = {anode_bits_o[1] & anode_bits_o[0], anode_bits_o[2] & anode_bits_o[0]};
+    case (anode_bits_o)
+        4'b1110: anode_index = 2'd0;
+        4'b1101: anode_index = 2'd1;
+        4'b1011: anode_index = 2'd2;
+        4'b0111: anode_index = 2'd3;
+        default: anode_index = 2'd0;
+    endcase
 end
 endmodule

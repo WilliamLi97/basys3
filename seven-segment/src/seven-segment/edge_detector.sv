@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module edge_detector(
     input logic reset_i,
     input logic clk_i,

@@ -1,12 +1,23 @@
 RTL_SRC = $(shell find src -type f -name "*.sv")
+SIM_SRC = verif/ss_controller_tb.sv
+SIM_DIR = sim
 BUILD_DIR = build
 REPORTS_DIR = reports
 SCRIPTS_DIR = scripts
+IVERILOG_F_FILE = verif/files.f
 
-lint: $(BUILD_DIR)
+
+sim: $(SIM_DIR)/sim.vcd
+
+waveform: $(SIM_DIR)/sim.vcd
+	@gtkwave $(SIM_DIR)/sim.vcd
+
+lint: $(RTL_SRC)
+	@mkdir -p $(BUILD_DIR)
 	@vivado -mode batch -source $(SCRIPTS_DIR)/lint.tcl -log $(BUILD_DIR)/lint.log -nojournal
 
-elaborate: $(BUILD_DIR)
+elaborate:
+	@mkdir -p $(BUILD_DIR)
 	@vivado -mode batch -source $(SCRIPTS_DIR)/elaborate.tcl -log $(BUILD_DIR)/elaborate.log -nojournal
 
 synthesis: $(BUILD_DIR)/synthesis.dcp
@@ -20,11 +31,10 @@ bitstream: $(BUILD_DIR)/bitstream.bit
 program: $(BUILD_DIR)/bitstream.bit
 	@vivado -mode batch -source $(SCRIPTS_DIR)/program.tcl -log $(BUILD_DIR)/program.log -nojournal
 
-$(BUILD_DIR):
-	@mkdir $(BUILD_DIR)
-
-$(REPORTS_DIR):
-	@mkdir $(REPORTS_DIR)
+$(SIM_DIR)/sim.vcd: $(RTL_SRC) $(SIM_SRC) $(IVERILOG_F_FILE)
+	@mkdir -p $(SIM_DIR)
+	@iverilog -g2012 -o $(SIM_DIR)/sim -s ss_controller_tb -D 'DUMPFILE_NAME="$(SIM_DIR)/sim.vcd"' $(SIM_SRC) $(RTL_SRC)
+	@vvp $(SIM_DIR)/sim
 
 $(BUILD_DIR)/synthesis.dcp: $(RTL_SRC)
 	@mkdir -p $(BUILD_DIR)
@@ -40,8 +50,8 @@ $(BUILD_DIR)/route.dcp: $(BUILD_DIR)/place.dcp
 $(BUILD_DIR)/bitstream.bit: $(BUILD_DIR)/route.dcp
 	@vivado -mode batch -source $(SCRIPTS_DIR)/bitstream.tcl -log $(BUILD_DIR)/bitstream.log -nojournal
 
-clean_reports:
-	@rm -rf reports
+clean_sim:
+	@rm -rf sim
 
 clean_logs:
 	@rm -f build/*.log
@@ -49,6 +59,9 @@ clean_logs:
 clean_build:
 	@rm -rf build
 
+clean_reports:
+	@rm -rf reports
+
 .PHONY:
 clean:
-	@rm -rf build reports
+	@rm -rf build reports sim

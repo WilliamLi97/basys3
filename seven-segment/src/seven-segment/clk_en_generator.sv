@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module clk_en_generator #(
     parameter COUNTER_BITS_NUM = 17
 ) (
