@@ -1,5 +1,3 @@
-`timescale 1ns / 1ps
-
 module ss_top (
     input logic sw,
     input logic clk,
@@ -20,7 +18,7 @@ clk_en_generator #(
     .reset_i(reset),
     .clk_i(clk),
     .clk_en_o(clk_en)
-); 
+);
 
 synchronizer #(
     .CHAIN_LENGTH(2)
