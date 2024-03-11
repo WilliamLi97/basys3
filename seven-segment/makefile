@@ -4,8 +4,6 @@ SIM_DIR = sim
 BUILD_DIR = build
 REPORTS_DIR = reports
 SCRIPTS_DIR = scripts
-IVERILOG_F_FILE = verif/files.f
-
 
 sim: $(SIM_DIR)/sim.vcd
 
@@ -31,7 +29,7 @@ bitstream: $(BUILD_DIR)/bitstream.bit
 program: $(BUILD_DIR)/bitstream.bit
 	@vivado -mode batch -source $(SCRIPTS_DIR)/program.tcl -log $(BUILD_DIR)/program.log -nojournal
 
-$(SIM_DIR)/sim.vcd: $(RTL_SRC) $(SIM_SRC) $(IVERILOG_F_FILE)
+$(SIM_DIR)/sim.vcd: $(RTL_SRC) $(SIM_SRC)
 	@mkdir -p $(SIM_DIR)
 	@iverilog -g2012 -o $(SIM_DIR)/sim -s ss_controller_tb -D 'DUMPFILE_NAME="$(SIM_DIR)/sim.vcd"' $(SIM_SRC) $(RTL_SRC)
 	@vvp $(SIM_DIR)/sim
