@@ -33,16 +33,8 @@ rise_detector fall_detector_inst (
     .falling_o(data_counter_underflow)
 );
 
-always_ff @(posedge clk_i, posedge reset_i) begin
-    if (reset_i) valid_o <= 1'b0;
-    else begin
-        case (current_state)
-            STATE_IDLE: valid_o <= 1'b0;
-            STATE_START: valid_o <= 1'b0;
-            STATE_DATA: valid_o <= data_counter_underflow ? 1'b1 : 1'b0;
-            default: valid_o <= 1'b0;
-        endcase
-    end
+always_comb begin
+    valid_o = current_state == STATE_DATA && data_counter_underflow ? 1'b1 : 1'b0;
 end
 
 always_ff @(posedge clk_i, posedge reset_i) begin
