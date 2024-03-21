@@ -26,11 +26,11 @@ fall_detector rx_fall_detector_inst (
     .falling_o(rx_falling)
 );
 
-rise_detector fall_detector_inst (
+rise_detector rx_counter_underflow_detector_inst (
     .reset_i(reset_i),
     .clk_i(clk_i),
     .signal_i(data_counter[2]),
-    .falling_o(data_counter_underflow)
+    .rising_o(data_counter_underflow)
 );
 
 always_comb begin
