@@ -1,5 +1,5 @@
 RTL_SRC = $(shell find src -type f -name "*.sv")
-SIM_SRC = verif/uart_rx_tb.sv
+SIM_SRC = verif/uart_tx_tb.sv
 SIM_DIR = sim
 BUILD_DIR = build
 REPORTS_DIR = reports
@@ -31,7 +31,7 @@ program: $(BUILD_DIR)/bitstream.bit
 
 $(SIM_DIR)/sim.vcd: $(RTL_SRC) $(SIM_SRC)
 	@mkdir -p $(SIM_DIR)
-	@iverilog -g2012 -o $(SIM_DIR)/sim -s uart_rx_tb -D 'DUMPFILE_NAME="$(SIM_DIR)/sim.vcd"' $(SIM_SRC) $(RTL_SRC)
+	@iverilog -g2012 -o $(SIM_DIR)/sim -D 'DUMPFILE_NAME="$(SIM_DIR)/sim.vcd"' $(SIM_SRC) $(RTL_SRC)
 	@vvp $(SIM_DIR)/sim
 
 $(BUILD_DIR)/synthesis.dcp: $(RTL_SRC)
