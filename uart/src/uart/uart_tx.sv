@@ -1,4 +1,7 @@
-module uart_tx (
+module uart_tx #(
+    // 104615 tested working (9600 baud)
+    parameter CLK_DIV_FACTOR = 10415    // floor(clock frequency / target baud rate) - 1
+) (
     input logic reset_i,
     input logic clk_i,
     input logic write_en_i,
@@ -17,20 +20,9 @@ typedef enum logic [1:0] {
 logic [1:0] current_state;
 logic [9:0] data;
 
-logic [13:0] counter;
+logic [$clog2(CLK_DIV_FACTOR)-1:0] counter;
 
-logic [2:0] tx_counter;
-logic tx_counter_underflow;
-
-logic counter_debug;
-assign counter_debug = !counter;
-
-rise_detector tx_counter_underflow_detector_inst (
-    .reset_i(reset_i),
-    .clk_i(clk_i),
-    .signal_i(tx_counter[2]),
-    .rising_o(tx_counter_underflow)
-);
+logic [3:0] tx_counter; // extra bit to check for underflow
 
 assign tx_o = data[0];
 
@@ -53,7 +45,7 @@ always_ff @(posedge clk_i, posedge reset_i) begin
         case (current_state)
             STATE_IDLE: data <= write_en_i ? {1'b1, byte_i, data[1]} : data;
             STATE_START: data <= counter ? data : {1'b1, data[9:1]};
-            STATE_DATA: data <= tx_counter_underflow ? 10'd1 : counter ? data : {1'b1, data[9:1]};
+            STATE_DATA: data <= tx_counter[3] ? 10'd1 : counter ? data : {1'b1, data[9:1]};
             STATE_STOP: data <= 10'd1;
             default: data <= 10'd1;
         endcase
@@ -61,27 +53,27 @@ always_ff @(posedge clk_i, posedge reset_i) begin
 end
 
 always_ff @(posedge clk_i, posedge reset_i) begin
-    if (reset_i) tx_counter <= 3'd7;
+    if (reset_i) tx_counter <= 4'b0111;
     else begin
         case (current_state)
-            STATE_IDLE: tx_counter <= 3'd7;
-            STATE_START: tx_counter <= 3'd7;
+            STATE_IDLE: tx_counter <= 4'b0111;
+            STATE_START: tx_counter <= 4'b0111;
             STATE_DATA: tx_counter <= counter ? tx_counter : tx_counter - 1;
-            STATE_STOP: tx_counter <= 3'd7;
-            default: tx_counter <= 3'd7;
+            STATE_STOP: tx_counter <= 4'b0111;
+            default: tx_counter <= 4'b0111;
         endcase
     end
 end
 
 always_ff @(posedge clk_i, posedge reset_i) begin
-    if (reset_i) counter <= 14'd10415;
+    if (reset_i) counter <= CLK_DIV_FACTOR;
     else begin
         case (current_state)
-            STATE_IDLE: counter <= write_en_i ? counter - 1 : 14'd10415;
-            STATE_START: counter <= counter ? counter - 1 : 14'd10415;
-            STATE_DATA: counter <= counter ? counter - 1 : 14'd10415;
-            STATE_STOP: counter <= counter ? counter - 1 : 14'd10415;
-            default: counter <= 14'd10415;
+            STATE_IDLE: counter <= write_en_i ? counter - 1 : CLK_DIV_FACTOR;
+            STATE_START: counter <= counter ? counter - 1 : CLK_DIV_FACTOR;
+            STATE_DATA: counter <= counter ? counter - 1 : CLK_DIV_FACTOR;
+            STATE_STOP: counter <= counter ? counter - 1 : CLK_DIV_FACTOR;
+            default: counter <= CLK_DIV_FACTOR;
         endcase
     end
 end
@@ -92,7 +84,7 @@ always_ff @(posedge clk_i, posedge reset_i) begin
         case (current_state)
             STATE_IDLE: current_state <= write_en_i ? STATE_START : STATE_IDLE;
             STATE_START: current_state <= counter ? STATE_START : STATE_DATA;
-            STATE_DATA: current_state <= tx_counter_underflow ? STATE_STOP : STATE_DATA;
+            STATE_DATA: current_state <= tx_counter[3] ? STATE_STOP : STATE_DATA;
             STATE_STOP: current_state <= counter ? STATE_STOP : STATE_IDLE;
             default: current_state <= STATE_IDLE;
         endcase
